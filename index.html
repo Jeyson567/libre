@@ -1,5 +1,3 @@
-
-
 <html>
 <head>
 	<title>Conteo Nocturno de Platos</title>
@@ -68,6 +66,7 @@
 			<button type="button" onclick="exportarPDF()">Exportar a PDF</button>
 			<button type="button" onclick="window.print()">Imprimir</button>
 			<button type="button" onclick="abrirMenuEditor()">Editar Menú</button>
+			<button type="button" onclick="limpiarTodo()" style="background:#b00;">Limpiar todo</button>
 		</div>
 		<div id="resumen"></div>
 		<div id="grafica" style="margin-top:32px;"></div>
@@ -311,7 +310,40 @@
 		});
 	}
 
-	// Renderizar el formulario solo para la categoría seleccionada
+
+	// Guardar cantidades globalmente y en localStorage
+	let cantidades = {};
+
+	// Cargar cantidades desde localStorage al iniciar
+	function cargarCantidades() {
+		const guardado = localStorage.getItem('cantidadesComandas');
+		if (guardado) {
+			try {
+				cantidades = JSON.parse(guardado) || {};
+			} catch (e) {
+				cantidades = {};
+			}
+		}
+	}
+
+
+	// Guardar cantidades en localStorage
+	function guardarCantidadesLS() {
+		localStorage.setItem('cantidadesComandas', JSON.stringify(cantidades));
+	}
+
+	// Limpiar todas las cantidades y localStorage
+	function limpiarTodo() {
+		if (confirm('¿Seguro que deseas borrar todos los datos ingresados?')) {
+			cantidades = {};
+			guardarCantidadesLS();
+			renderForm();
+			document.getElementById('resumen').innerHTML = '';
+			document.getElementById('grafica').innerHTML = '';
+		}
+	}
+
+	// Renderizar el formulario para la categoría seleccionada, manteniendo cantidades
 	function renderForm() {
 		const select = document.getElementById('categoriaSelect');
 		const idx = select ? parseInt(select.value) : 0;
@@ -319,41 +351,54 @@
 		if (menu[idx]) {
 			html += `<div class='categoria'>${menu[idx].cat}</div><table><tr><th>Plato</th><th>Cantidad</th></tr>`;
 			getPlatosFiltrados(idx).forEach(item => {
-				html += `<tr><td>${item.n}</td><td><input class='input-cantidad' type='number' min='0' name="${item.n}" /></td></tr>`;
+				const valor = cantidades[item.n] !== undefined ? cantidades[item.n] : '';
+				html += `<tr><td>${item.n}</td><td><input class='input-cantidad' type='number' min='0' name="${item.n}" value="${valor}" onchange="guardarCantidad('${item.n}', this.value)" /></td></tr>`;
 			});
 			html += '</table>';
 		}
 		document.getElementById('conteoForm').innerHTML = html;
 	}
 
-	// Inicializar selector, formulario y frase motivadora
+	// Guardar cantidad al cambiar input y persistir en localStorage
+	function guardarCantidad(nombre, valor) {
+		if (valor === '' || isNaN(valor) || parseInt(valor) <= 0) {
+			delete cantidades[nombre];
+		} else {
+			cantidades[nombre] = parseInt(valor);
+		}
+		guardarCantidadesLS();
+	}
+
+
+	// Inicializar selector, cargar cantidades, formulario y frase motivadora
+	cargarCantidades();
 	renderCategoriaSelect();
 	renderForm();
 	mostrarFraseMotivadora();
 
 
 	function mostrarResumen() {
-		const select = document.getElementById('categoriaSelect');
-		const idx = select ? parseInt(select.value) : 0;
-		const form = document.getElementById('conteoForm');
-		const data = new FormData(form);
 		const usuario = document.getElementById('usuarioInput').value;
 		const notas = document.getElementById('notasDia').value;
-		let resumen = `<h2>Resumen del Conteo</h2><div style='font-weight:bold;margin-bottom:8px;'>${menu[idx].cat}</div>`;
+		let resumen = `<h2>Resumen del Conteo</h2>`;
 		if(usuario) resumen += `<div><b>Usuario:</b> ${usuario}</div>`;
 		if(notas) resumen += `<div><b>Notas:</b> ${notas}</div>`;
 		let hayDatos = false;
-		resumen += '<table><tr><th>Plato</th><th>Cantidad</th></tr>';
 		let datosGrafica = [];
-		menu[idx].items.forEach(item => {
-			let cantidad = data.get(item.n);
-			if (cantidad && parseInt(cantidad) > 0) {
-				resumen += `<tr><td>${item.n}</td><td>${cantidad}</td></tr>`;
-				datosGrafica.push({plato: item.n, cantidad: parseInt(cantidad)});
-				hayDatos = true;
+		menu.forEach(cat => {
+			let filas = '';
+			cat.items.forEach(item => {
+				let cantidad = cantidades[item.n];
+				if (cantidad && parseInt(cantidad) > 0) {
+					filas += `<tr><td>${item.n}</td><td>${cantidad}</td></tr>`;
+					datosGrafica.push({plato: item.n, cantidad: parseInt(cantidad)});
+					hayDatos = true;
+				}
+			});
+			if (filas) {
+				resumen += `<div class='categoria' style='margin-top:18px;'>${cat.cat}</div><table><tr><th>Plato</th><th>Cantidad</th></tr>${filas}</table>`;
 			}
 		});
-		resumen += '</table>';
 		if (!hayDatos) {
 			resumen = '<p>No se ingresaron cantidades.</p>';
 			document.getElementById('grafica').innerHTML = '';
@@ -377,19 +422,23 @@
 	}
 
 	function exportarCSV() {
-		const select = document.getElementById('categoriaSelect');
-		const idx = select ? parseInt(select.value) : 0;
-		const form = document.getElementById('conteoForm');
-		const data = new FormData(form);
 		const usuario = document.getElementById('usuarioInput').value;
 		const notas = document.getElementById('notasDia').value;
-		let rows = [[menu[idx].cat], ['Usuario', usuario], ['Notas', notas], ['Plato','Cantidad']];
+		let rows = [['Usuario', usuario], ['Notas', notas]];
 		let hayDatos = false;
-		menu[idx].items.forEach(item => {
-			let cantidad = data.get(item.n);
-			if (cantidad && parseInt(cantidad) > 0) {
-				rows.push([item.n, cantidad]);
-				hayDatos = true;
+		menu.forEach(cat => {
+			let catRows = [];
+			cat.items.forEach(item => {
+				let cantidad = cantidades[item.n];
+				if (cantidad && parseInt(cantidad) > 0) {
+					catRows.push([item.n, cantidad]);
+					hayDatos = true;
+				}
+			});
+			if (catRows.length) {
+				rows.push([cat.cat]);
+				rows.push(['Plato','Cantidad']);
+				rows = rows.concat(catRows);
 			}
 		});
 		if (!hayDatos) {
