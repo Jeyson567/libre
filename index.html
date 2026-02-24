@@ -1,478 +1,182 @@
-<html>
+<!DOCTYPE html>
+<html lang="es">
 <head>
-	<title>Conteo Nocturno de Platos</title>
-	<style>
-		body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: #f4f8f3; }
-		.container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px #0001; padding: 32px 40px; }
-		h1 { color: #2d4a22; margin-bottom: 8px; }
-		.subtitle { color: #4e6b4a; margin-bottom: 30px; }
-		.categoria { margin-top: 32px; font-size: 1.2em; color: #1a2e13; font-weight: bold; border-bottom: 1px solid #e0e0e0; padding-bottom: 4px; }
-		table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-		th, td { padding: 8px 6px; text-align: left; }
-		th { background: #eaf3e6; color: #2d4a22; }
-		tr:nth-child(even) { background: #f7faf6; }
-		.input-cantidad { width: 60px; border: 1px solid #b2c7b0; border-radius: 4px; padding: 4px; }
-		#resumen { background: #f7faf6; border: 1px solid #b2c7b0; padding: 18px; margin-top: 30px; border-radius: 8px; }
-		.btns { margin-top: 24px; display: flex; gap: 16px; }
-		button { padding: 10px 24px; background: #2d4a22; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; transition: background 0.2s; }
-		button:hover { background: #3e6b32; }
-		@media (max-width: 700px) {
-			.container { padding: 12px 2vw; }
-			table, th, td { font-size: 0.95em; }
-		}
-	</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suministros Médicos - Tienda en Línea</title>
+    <style>
+        :root {
+            --primary: #25d366;
+            --secondary: #128c7e;
+            --dark: #333;
+            --light: #f4f4f4;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--light); color: var(--dark); }
+        header { background: var(--secondary); color: white; padding: 1rem; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        .container { max-width: 800px; margin: 20px auto; padding: 0 15px; }
+        
+        /* Lista de Productos */
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .product-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; }
+        .price { font-weight: bold; color: var(--secondary); font-size: 1.2rem; display: block; margin: 10px 0; }
+        
+        button { 
+            background: var(--primary); color: white; border: none; padding: 10px 15px; 
+            border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s;
+        }
+        button:hover { background: var(--secondary); }
+
+        /* Carrito */
+        .cart-section { background: white; margin-top: 30px; padding: 20px; border-radius: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th { border-bottom: 2px solid var(--light); padding: 10px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid var(--light); }
+        
+        .qty-input { width: 50px; padding: 5px; text-align: center; }
+        .total-container { text-align: right; font-size: 1.3rem; font-weight: bold; }
+        
+        .whatsapp-btn { 
+            display: block; width: 100%; background: #25d366; color: white; 
+            text-align: center; padding: 15px; text-decoration: none; 
+            border-radius: 8px; font-size: 1.1rem; margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-	<div id="loginContainer" style="max-width:400px;margin:80px auto 0 auto;padding:32px 24px;background:#fff;border-radius:12px;box-shadow:0 4px 24px #0001;display:block;">
-		<h2 style="color:#2d4a22;text-align:center;">Acceso al Sistema</h2>
-		<div style="margin:18px 0 10px 0;text-align:center;">Ingrese la contraseña para continuar</div>
-		<input id="passwordInput" type="password" placeholder="Contraseña" style="width:100%;padding:10px 8px;border-radius:6px;border:1px solid #b2c7b0;font-size:1.1em;">
-		<button onclick="login()" style="width:100%;margin-top:18px;padding:10px 0;background:#2d4a22;color:#fff;border:none;border-radius:6px;font-size:1.1em;cursor:pointer;">Entrar</button>
-		<div id="loginError" style="color:#b00;margin-top:10px;text-align:center;display:none;">Contraseña incorrecta</div>
-	</div>
-	<div class="container" id="mainContainer" style="display:none;">
-		<div id="fraseMotivadora" style="background:#eaf3e6; color:#2d4a22; border-radius:8px; padding:16px 18px; margin-bottom:24px; font-size:1.15em; font-weight:bold; text-align:center;"></div>
-		<h1>Conteo Nocturno de Platos</h1>
-		<div class="subtitle">Ingresa la cantidad vendida de cada plato. Puedes exportar el resumen a Excel/CSV/PDF, imprimir, y ver gráficas.</div>
-		<div style="display:flex;gap:16px;align-items:center;margin-bottom:18px;flex-wrap:wrap;">
-			<div style="flex:1;min-width:220px;">
-				<label for="categoriaSelect" style="font-weight:bold;">Sección:</label>
-				<select id="categoriaSelect" onchange="renderForm()" style="margin-left:10px; padding:4px 10px; border-radius:4px; border:1px solid #b2c7b0;">
-					<!-- Opciones generadas por JS -->
-				</select>
-			</div>
-			<div style="flex:1;min-width:220px;">
-				<label for="usuarioInput" style="font-weight:bold;">Usuario:</label>
-				<input id="usuarioInput" type="text" placeholder="Nombre del responsable" style="margin-left:10px; padding:4px 10px; border-radius:4px; border:1px solid #b2c7b0;">
-			</div>
-			<div style="flex:2;min-width:220px;">
-				<label for="buscadorPlato" style="font-weight:bold;">Buscar plato:</label>
-				<input id="buscadorPlato" type="text" placeholder="Filtrar por nombre..." style="margin-left:10px; padding:4px 10px; border-radius:4px; border:1px solid #b2c7b0;" oninput="renderForm()">
-			</div>
-			<div style="flex:0;min-width:120px;">
-				<button type="button" onclick="toggleDarkMode()" style="padding:6px 16px;">🌙 Modo oscuro</button>
-			</div>
-		</div>
-		<form id="conteoForm">
-			<!-- CATEGORÍAS Y PLATOS -->
-		</form>
-		<div style="margin:18px 0 8px 0;">
-			<label for="notasDia" style="font-weight:bold;">Notas del día:</label>
-			<textarea id="notasDia" rows="2" style="width:100%;margin-top:6px;padding:8px 10px;border-radius:6px;border:1px solid #b2c7b0;"></textarea>
-		</div>
-		<div class="btns">
-			<button type="button" onclick="mostrarResumen()">Ver Resumen</button>
-			<button type="button" onclick="exportarCSV()">Exportar a Excel/CSV</button>
-			<button type="button" onclick="exportarPDF()">Exportar a PDF</button>
-			<button type="button" onclick="window.print()">Imprimir</button>
-			<button type="button" onclick="abrirMenuEditor()">Editar Menú</button>
-			<button type="button" onclick="limpiarTodo()" style="background:#b00;">Limpiar todo</button>
-		</div>
-		<div id="resumen"></div>
-		<div id="grafica" style="margin-top:32px;"></div>
-		<div id="menuEditorModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:#0008;z-index:1000;align-items:center;justify-content:center;">
-			<div id="menuEditorBg" onclick="cerrarMenuEditor()" style="position:absolute;top:0;left:0;width:100vw;height:100vh;"></div>
-			<div style="background:#fff;padding:32px 24px;border-radius:12px;max-width:500px;width:95vw;position:relative;z-index:2;box-shadow:0 4px 24px #0003;max-height:80vh;overflow-y:auto;">
-				<h2>Editar Menú</h2>
-				<div id="menuEditorContent"></div>
-				<button onclick="guardarMenuEditado()" style="margin-top:18px;">Guardar cambios</button>
-				<button onclick="cerrarMenuEditor()" style="margin-top:18px;margin-left:10px;">Cancelar</button>
-			</div>
-		</div>
-	</div>
-	<script>
-	// Modo oscuro
-	function toggleDarkMode() {
-		document.body.classList.toggle('dark-mode');
-	}
 
-	// Menú editable (estructura básica)
-	function abrirMenuEditor() {
-		let html = '';
-		menu.forEach((cat, cidx) => {
-			html += `<div style='font-weight:bold;margin-top:18px;'>${cat.cat}</div>`;
-			cat.items.forEach((item, iidx) => {
-				html += `<div style='display:flex;gap:8px;margin-bottom:6px;'><input type='text' value='${item.n}' data-cidx='${cidx}' data-iidx='${iidx}' style='flex:1;padding:4px 8px;border-radius:4px;border:1px solid #b2c7b0;'><button onclick='eliminarPlato(${cidx},${iidx})' type='button'>Eliminar</button></div>`;
-			});
-			html += `<button onclick='agregarPlato(${cidx})' type='button' style='margin-bottom:10px;'>Agregar plato</button>`;
-		});
-		document.getElementById('menuEditorContent').innerHTML = html;
-		document.getElementById('menuEditorModal').style.display = 'flex';
-		// Evitar que el scroll de la página se mueva cuando el modal está abierto
-		document.body.style.overflow = 'hidden';
-	}
-	function cerrarMenuEditor() {
-		document.getElementById('menuEditorModal').style.display = 'none';
-		document.body.style.overflow = '';
-	}
-	function agregarPlato(cidx) {
-		menu[cidx].items.push({n:'Nuevo plato'});
-		abrirMenuEditor();
-	}
-	function eliminarPlato(cidx, iidx) {
-		menu[cidx].items.splice(iidx,1);
-		abrirMenuEditor();
-	}
-	function guardarMenuEditado() {
-		const inputs = document.querySelectorAll('#menuEditorContent input[type=text]');
-		inputs.forEach(input => {
-			const cidx = parseInt(input.getAttribute('data-cidx'));
-			const iidx = parseInt(input.getAttribute('data-iidx'));
-			menu[cidx].items[iidx].n = input.value;
-		});
-		cerrarMenuEditor();
-		renderCategoriaSelect();
-		renderForm();
-	}
+<header>
+    <h1>Mi Tienda Médica</h1>
+    <p>Haz tu pedido y recíbelo por WhatsApp</p>
+</header>
 
-	// Buscador de platos
-	function getPlatosFiltrados(catIdx) {
-		const filtro = document.getElementById('buscadorPlato').value.toLowerCase();
-		if (!filtro) return menu[catIdx].items;
-		return menu[catIdx].items.filter(item => item.n.toLowerCase().includes(filtro));
-	}
-	// Contraseña simple (puedes cambiarla aquí)
-	const PASSWORD = "montana2025";
+<div class="container">
+    <div class="product-grid" id="productos">
+        </div>
 
-	function login() {
-		const input = document.getElementById('passwordInput');
-		const error = document.getElementById('loginError');
-		if (input.value === PASSWORD) {
-			document.getElementById('loginContainer').style.display = 'none';
-			document.getElementById('mainContainer').style.display = 'block';
-		} else {
-			error.style.display = 'block';
-		}
-	}
-	document.getElementById('passwordInput').addEventListener('keydown', function(e) {
-		if (e.key === 'Enter') login();
-	});
+    <div class="cart-section">
+        <h2>Tu Carrito</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cant.</th>
+                    <th>Subtotal</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="cart-items">
+                </tbody>
+        </table>
+        <div class="total-container">
+            Total: Q <span id="cart-total">0.00</span>
+        </div>
+        <a href="#" class="whatsapp-btn" onclick="enviarWhatsApp()">
+            🚀 Enviar Pedido por WhatsApp
+        </a>
+    </div>
+</div>
 
-	// Frases motivadoras (50)
-	const frases = [
-		"Hoy es un gran día para dar lo mejor de ti.",
-		"Cada plato servido es una oportunidad para sorprender.",
-		"La pasión por lo que haces se nota en cada detalle.",
-		"El éxito es la suma de pequeños esfuerzos repetidos cada día.",
-		"Sonríe, tu actitud transforma el ambiente.",
-		"La excelencia se logra con constancia.",
-		"Un cliente feliz es la mejor recompensa.",
-		"Hoy puedes superar tus propios límites.",
-		"La amabilidad es el mejor ingrediente.",
-		"Hazlo con amor y se notará en el resultado.",
-		"Cada día es una nueva oportunidad para brillar.",
-		"El trabajo en equipo hace posible lo imposible.",
-		"La calidad comienza con la atención al detalle.",
-		"Tu esfuerzo marca la diferencia.",
-		"La mejor sazón es la dedicación.",
-		"Hoy puedes inspirar a quienes te rodean.",
-		"La actitud positiva es contagiosa.",
-		"El respeto y la cortesía abren puertas.",
-		"La creatividad transforma lo cotidiano en especial.",
-		"Cada cliente merece lo mejor de nosotros.",
-		"El aprendizaje nunca termina.",
-		"La humildad es la base del crecimiento.",
-		"El compromiso se refleja en el servicio.",
-		"La gratitud convierte lo que tenemos en suficiente.",
-		"Hoy es un buen día para aprender algo nuevo.",
-		"La perseverancia vence cualquier obstáculo.",
-		"El entusiasmo es el motor del éxito.",
-		"La honestidad es el mejor aderezo.",
-		"La confianza se gana con cada acción.",
-		"El respeto por el cliente es nuestra prioridad.",
-		"La limpieza es parte del buen servicio.",
-		"La puntualidad habla de tu profesionalismo.",
-		"La empatía crea conexiones duraderas.",
-		"El optimismo abre caminos.",
-		"La paciencia es clave en los momentos difíciles.",
-		"La innovación nos mantiene vigentes.",
-		"El orden facilita el trabajo.",
-		"La cortesía nunca pasa de moda.",
-		"La pasión se transmite en cada plato.",
-		"El respeto entre compañeros fortalece el equipo.",
-		"La actitud de servicio es nuestro sello.",
-		"La comunicación es la base del éxito.",
-		"La responsabilidad es nuestro compromiso.",
-		"La superación personal es un camino diario.",
-		"La motivación es el primer paso para lograrlo.",
-		"La honestidad genera confianza.",
-		"La dedicación es la clave del reconocimiento.",
-		"La amabilidad abre corazones.",
-		"La pasión por servir nos distingue.",
-		"Hoy es el mejor día para dar lo mejor de ti."
-	];
+<script>
+    const productos = [
+        { id: 1, nombre: "Mascarillas", precio: 25.00 },
+        { id: 2, nombre: "Guantes", precio: 50.00 },
+        { id: 3, nombre: "Porta Objetos", precio: 45.00 },
+        { id: 4, nombre: "Cubre Objetos", precio: 40.00 },
+        { id: 5, nombre: "Pipetas", precio: 0.75 },
+        { id: 6, nombre: "Siploc de algodón", precio: 5.00 },
+        { id: 7, nombre: "Botecito de algodón", precio: 5.00 }
+    ];
 
-	// Mostrar frase motivadora según el día
-	function mostrarFraseMotivadora() {
-		const hoy = new Date();
-		// Día único desde una fecha base (por ejemplo, 2025-01-01)
-		const base = new Date(2025, 0, 1);
-		const dias = Math.floor((hoy - base) / (1000 * 60 * 60 * 24));
-		const idx = dias % frases.length;
-		document.getElementById('fraseMotivadora').textContent = frases[idx];
-	}
+    let carrito = [];
 
-	// Menú con precios
-	const menu = [
-		{cat:'🍳 Desayunos / Cenas', items:[
-			{n:'Omelette supremo'},
-			{n:'Poptún finquero'},
-			{n:'Omelette jamón y queso'},
-			{n:'Desayuno de la casa'},
-			{n:'Huevos gratinados a la Montaña'},
-			{n:'Chilaquiles Montaña'},
-			{n:'Panqueques'},
-			{n:'Tostadas francesas'},
-			{n:'Wafles'},
-			{n:'Ensalada de frutas'},
-			{n:'Copa del rey'},
-			{n:'Huevos ahogados'},
-			{n:'Huevos al albañil'},
-			{n:'Desayuno/cena (2 huevos al gusto, frijol, plátano, tortilla, café)'},
-		]},
-		{cat:'🥩 Asados Montaña (incluyen 3 guarniciones)', items:[
-			{n:'Tomahawk 1LB'},
-			{n:'Ribeye steak 1LB'},
-			{n:'Cowboy steak 1LB'},
-			{n:'Puyazo ½ LB'},
-			{n:'Lomito ½ LB'},
-			{n:'Costilla asada ½ LB'},
-			{n:'Costilla en BBQ ½ LB'},
-			{n:'Pierna cuadril'},
-			{n:'Pollo asado'},
-			{n:'Caldo de res'},
-			{n:'Churrasco de res (8 onz carne, arroz, frijol, chirmol)'},
-			{n:'Caldo de res (especial)'},
-			{n:'Pollo asado pierna cuadril'},
-		]},
-		{cat:'🐟 Mariscos', items:[
-			{n:'Mojarra frita'},
-			{n:'Camarones 1LB'},
-		]},
-		{cat:'🍝 Pastas', items:[
-			{n:'Pasta Alfredo con camarón'},
-			{n:'Lasaña de res'},
-			{n:'Espagueti a la boloñesa'},
-		]},
-		{cat:'🌮 Snacks Montaña', items:[
-			{n:'Tacos de res (4 con costra de queso)'},
-			{n:'Tacos de birria'},
-			{n:'Tacos de cochinilla'},
-			{n:'Sándwich clásico'},
-			{n:'Sándwich de pollo'},
-			{n:'Hamburguesa Steak'},
-			{n:'Nachos supremos'},
-			{n:'Sándwich jamón y queso'},
-		]},
-		{cat:'🍰 Postres', items:[
-			{n:'Crepas (Nutella / Fresa / Banano gratinado)'},
-			{n:'Mosaico de la casa'},
-			{n:'Pera horneada al vino con helado'},
-			{n:'Copa de helado con galletas'},
-		]},
-		{cat:'🥤 Bebidas Frías', items:[
-			{n:'Pichel de horchata'},
-			{n:'Pichel de jamaica'},
-			{n:'Smoothie (fresa/banano/mixto)'},
-			{n:'Frappe (Caramelo/Fresa/Oreo/Café)'},
-			{n:'Gaseosa'},
-			{n:'Naranjada con soda/agua'},
-			{n:'Limonada con soda/agua'},
-			{n:'Agua pura'},
-			{n:'Jugo verde'},
-		]},
-		{cat:'☕ Bebidas Calientes', items:[
-			{n:'Café con leche'},
-			{n:'Chocolate (agua/leche)'},
-			{n:'Té'},
-		]},
-		{cat:'🍹 Bebidas Preparadas', items:[
-			{n:'Cerveza Gallo'},
-			{n:'Sangría'},
-			{n:'Piña colada'},
-			{n:'Mojito cubano'},
-			{n:'Margarita'},
-			{n:'Daiquiri (clásico o fresa)'},
-			{n:'Cimarrona'},
-		]},
-	];
+    // Cargar productos en la interfaz
+    function renderProductos() {
+        const grid = document.getElementById('productos');
+        grid.innerHTML = productos.map(p => `
+            <div class="product-card">
+                <h3>${p.nombre}</h3>
+                <span class="price">Q ${p.precio.toFixed(2)}</span>
+                <button onclick="agregarAlCarrito(${p.id})">Agregar al Carrito</button>
+            </div>
+        `).join('');
+    }
 
+    function agregarAlCarrito(id) {
+        const producto = productos.find(p => p.id === id);
+        const existe = carrito.find(item => item.id === id);
 
-	// Renderizar opciones del selector de categoría
-	function renderCategoriaSelect() {
-		const select = document.getElementById('categoriaSelect');
-		select.innerHTML = '';
-		menu.forEach((cat, idx) => {
-			const opt = document.createElement('option');
-			opt.value = idx;
-			opt.textContent = cat.cat;
-			select.appendChild(opt);
-		});
-	}
+        if (existe) {
+            existe.cantidad++;
+        } else {
+            carrito.push({ ...producto, cantidad: 1 });
+        }
+        renderCarrito();
+    }
 
+    function cambiarCantidad(id, nuevaCantidad) {
+        if (nuevaCantidad < 1) return eliminarDelCarrito(id);
+        const item = carrito.find(p => p.id === id);
+        if (item) {
+            item.cantidad = parseInt(nuevaCantidad);
+            renderCarrito();
+        }
+    }
 
-	// Guardar cantidades globalmente y en localStorage
-	let cantidades = {};
+    function eliminarDelCarrito(id) {
+        carrito = carrito.filter(p => p.id !== id);
+        renderCarrito();
+    }
 
-	// Cargar cantidades desde localStorage al iniciar
-	function cargarCantidades() {
-		const guardado = localStorage.getItem('cantidadesComandas');
-		if (guardado) {
-			try {
-				cantidades = JSON.parse(guardado) || {};
-			} catch (e) {
-				cantidades = {};
-			}
-		}
-	}
+    function renderCarrito() {
+        const tabla = document.getElementById('cart-items');
+        const totalSpan = document.getElementById('cart-total');
+        let total = 0;
 
+        tabla.innerHTML = carrito.map(item => {
+            const subtotal = item.precio * item.cantidad;
+            total += subtotal;
+            return `
+                <tr>
+                    <td>${item.nombre}</td>
+                    <td>
+                        <input type="number" class="qty-input" value="${item.cantidad}" 
+                        onchange="cambiarCantidad(${item.id}, this.value)">
+                    </td>
+                    <td>Q ${subtotal.toFixed(2)}</td>
+                    <td><button style="background:#ff4d4d" onclick="eliminarDelCarrito(${item.id})">×</button></td>
+                </tr>
+            `;
+        }).join('');
 
-	// Guardar cantidades en localStorage
-	function guardarCantidadesLS() {
-		localStorage.setItem('cantidadesComandas', JSON.stringify(cantidades));
-	}
+        totalSpan.innerText = total.toFixed(2);
+    }
 
-	// Limpiar todas las cantidades y localStorage
-	function limpiarTodo() {
-		if (confirm('¿Seguro que deseas borrar todos los datos ingresados?')) {
-			cantidades = {};
-			guardarCantidadesLS();
-			renderForm();
-			document.getElementById('resumen').innerHTML = '';
-			document.getElementById('grafica').innerHTML = '';
-		}
-	}
+    function enviarWhatsApp() {
+        if (carrito.length === 0) {
+            alert("El carrito está vacío");
+            return;
+        }
 
-	// Renderizar el formulario para la categoría seleccionada, manteniendo cantidades
-	function renderForm() {
-		const select = document.getElementById('categoriaSelect');
-		const idx = select ? parseInt(select.value) : 0;
-		let html = '';
-		if (menu[idx]) {
-			html += `<div class='categoria'>${menu[idx].cat}</div><table><tr><th>Plato</th><th>Cantidad</th></tr>`;
-			getPlatosFiltrados(idx).forEach(item => {
-				const valor = cantidades[item.n] !== undefined ? cantidades[item.n] : '';
-				html += `<tr><td>${item.n}</td><td><input class='input-cantidad' type='number' min='0' name="${item.n}" value="${valor}" onchange="guardarCantidad('${item.n}', this.value)" /></td></tr>`;
-			});
-			html += '</table>';
-		}
-		document.getElementById('conteoForm').innerHTML = html;
-	}
+        const numeroTelefono = "502XXXXXXXX"; // 👈 REEMPLAZA CON TU NÚMERO (incluye código de país)
+        let mensaje = "¡Hola! Quisiera realizar el siguiente pedido:\n\n";
+        let total = 0;
 
-	// Guardar cantidad al cambiar input y persistir en localStorage
-	function guardarCantidad(nombre, valor) {
-		if (valor === '' || isNaN(valor) || parseInt(valor) <= 0) {
-			delete cantidades[nombre];
-		} else {
-			cantidades[nombre] = parseInt(valor);
-		}
-		guardarCantidadesLS();
-	}
+        carrito.forEach(item => {
+            const subtotal = item.precio * item.cantidad;
+            mensaje += `• ${item.cantidad}x ${item.nombre} - Q ${subtotal.toFixed(2)}\n`;
+            total += subtotal;
+        });
 
+        mensaje += `\n*Total a pagar: Q ${total.toFixed(2)}*`;
+        
+        const url = `https://wa.me/${numeroTelefono}?text=${encodeURIComponent(mensaje)}`;
+        window.open(url, '_blank');
+    }
 
-	// Inicializar selector, cargar cantidades, formulario y frase motivadora
-	cargarCantidades();
-	renderCategoriaSelect();
-	renderForm();
-	mostrarFraseMotivadora();
+    renderProductos();
+</script>
 
-
-	function mostrarResumen() {
-		const usuario = document.getElementById('usuarioInput').value;
-		const notas = document.getElementById('notasDia').value;
-		let resumen = `<h2>Resumen del Conteo</h2>`;
-		if(usuario) resumen += `<div><b>Usuario:</b> ${usuario}</div>`;
-		if(notas) resumen += `<div><b>Notas:</b> ${notas}</div>`;
-		let hayDatos = false;
-		let datosGrafica = [];
-		menu.forEach(cat => {
-			let filas = '';
-			cat.items.forEach(item => {
-				let cantidad = cantidades[item.n];
-				if (cantidad && parseInt(cantidad) > 0) {
-					filas += `<tr><td>${item.n}</td><td>${cantidad}</td></tr>`;
-					datosGrafica.push({plato: item.n, cantidad: parseInt(cantidad)});
-					hayDatos = true;
-				}
-			});
-			if (filas) {
-				resumen += `<div class='categoria' style='margin-top:18px;'>${cat.cat}</div><table><tr><th>Plato</th><th>Cantidad</th></tr>${filas}</table>`;
-			}
-		});
-		if (!hayDatos) {
-			resumen = '<p>No se ingresaron cantidades.</p>';
-			document.getElementById('grafica').innerHTML = '';
-		} else {
-			mostrarGrafica(datosGrafica);
-		}
-		document.getElementById('resumen').innerHTML = resumen;
-	}
-
-	// Gráfica de barras simple
-	function mostrarGrafica(datos) {
-		if (!datos.length) { document.getElementById('grafica').innerHTML = ''; return; }
-		let max = Math.max(...datos.map(d=>d.cantidad));
-		let html = `<h3>Gráfica de Platos Vendidos</h3><div style='display:flex;flex-direction:column;gap:8px;'>`;
-		datos.sort((a,b)=>b.cantidad-a.cantidad).forEach(d => {
-			let ancho = max ? (d.cantidad/max*100) : 0;
-			html += `<div style='display:flex;align-items:center;gap:8px;'><div style='width:220px;'>${d.plato}</div><div style='background:#4e6b4a;height:22px;width:${ancho}%;min-width:20px;border-radius:4px;color:#fff;display:flex;align-items:center;justify-content:center;'>${d.cantidad}</div></div>`;
-		});
-		html += '</div>';
-		document.getElementById('grafica').innerHTML = html;
-	}
-
-	function exportarCSV() {
-		const usuario = document.getElementById('usuarioInput').value;
-		const notas = document.getElementById('notasDia').value;
-		let rows = [['Usuario', usuario], ['Notas', notas]];
-		let hayDatos = false;
-		menu.forEach(cat => {
-			let catRows = [];
-			cat.items.forEach(item => {
-				let cantidad = cantidades[item.n];
-				if (cantidad && parseInt(cantidad) > 0) {
-					catRows.push([item.n, cantidad]);
-					hayDatos = true;
-				}
-			});
-			if (catRows.length) {
-				rows.push([cat.cat]);
-				rows.push(['Plato','Cantidad']);
-				rows = rows.concat(catRows);
-			}
-		});
-		if (!hayDatos) {
-			alert('No se ingresaron cantidades para exportar.');
-			return;
-		}
-		let csvContent = rows.map(e => e.join(",")).join("\n");
-		let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-		let link = document.createElement('a');
-		link.href = URL.createObjectURL(blob);
-		link.download = 'conteo_nocturno.csv';
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-	}
-
-	// Exportar a PDF (simple, usando print)
-	function exportarPDF() {
-		mostrarResumen();
-		window.print();
-	}
-	// Modo oscuro CSS
-	const darkModeStyle = document.createElement('style');
-	darkModeStyle.innerHTML = `
-	.dark-mode, .dark-mode body { background: #23272f !important; color: #e0e0e0 !important; }
-	.dark-mode .container { background: #23272f !important; color: #e0e0e0 !important; }
-	.dark-mode input, .dark-mode textarea, .dark-mode select { background: #23272f !important; color: #e0e0e0 !important; border-color: #444 !important; }
-	.dark-mode table { background: #23272f !important; color: #e0e0e0 !important; }
-	.dark-mode th, .dark-mode td { background: #23272f !important; color: #e0e0e0 !important; }
-	.dark-mode #fraseMotivadora { background: #2d4a22 !important; color: #fff !important; }
-	.dark-mode button { background: #4e6b4a !important; color: #fff !important; }
-	.dark-mode #menuEditorModal > div { background: #23272f !important; color: #e0e0e0 !important; }
-	`;
-	document.head.appendChild(darkModeStyle);
-	</script>
 </body>
 </html>
