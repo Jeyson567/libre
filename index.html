@@ -1,1 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gran Conquistador Auto Hotel</title>
 
+<style>
+
+body{
+margin:0;
+font-family:Arial, Helvetica, sans-serif;
+background:#0b0b0b;
+color:white;
+scroll-behavior:smooth;
+}
+
+header{
+height:100vh;
+background:linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.9)),
+url("https://images.unsplash.com/photo-1566073771259-6a8506099945");
+background-size:cover;
+background-position:center;
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
+}
+
+header h1{
+font-size:50px;
+letter-spacing:2px;
+animation:fadeUp 2s;
+}
+
+header p{
+font-size:20px;
+opacity:0.8;
+animation:fadeUp 3s;
+}
+
+nav{
+position:fixed;
+width:100%;
+background:black;
+padding:15px;
+top:0;
+z-index:1000;
+text-align:center;
+}
+
+nav a{
+color:white;
+margin:15px;
+text-decoration:none;
+font-weight:bold;
+}
+
+section{
+padding:80px 20px;
+max-width:1000px;
+margin:auto;
+}
+
+h2{
+text-align:center;
+margin-bottom:40px;
+}
+
+.cards{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
+}
+
+.card{
+background:#141414;
+padding:25px;
+border-radius:10px;
+transition:0.4s;
+}
+
+.card:hover{
+transform:translateY(-10px);
+background:#1f1f1f;
+}
+
+.map{
+height:300px;
+border:2px dashed #444;
+display:flex;
+align-items:center;
+justify-content:center;
+opacity:0.7;
+}
+
+.gallery{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:15px;
+}
+
+.gallery div{
+height:150px;
+background:#222;
+border-radius:8px;
+display:flex;
+align-items:center;
+justify-content:center;
+opacity:0.7;
+}
+
+footer{
+background:black;
+padding:30px;
+text-align:center;
+opacity:0.7;
+}
+
+@keyframes fadeUp{
+from{
+opacity:0;
+transform:translateY(40px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+</style>
+</head>
+
+<body>
+
+<nav>
+<a href="#inicio">Inicio</a>
+<a href="#proyecto">Proyecto</a>
+<a href="#habitaciones">Habitaciones</a>
+<a href="#ubicacion">Ubicación</a>
+<a href="#galeria">Galería</a>
+</nav>
+
+<header id="inicio">
+<div>
+<h1>Gran Conquistador Auto Hotel</h1>
+<p>Privacidad, confort y discreción en Petén</p>
+</div>
+</header>
+
+<section id="proyecto">
+<h2>Proyecto en Construcción</h2>
+<p>
+Gran Conquistador Auto Hotel es un nuevo proyecto que actualmente se encuentra en construcción.
+Nuestro objetivo es ofrecer un espacio moderno donde la privacidad, la comodidad y un ambiente
+agradable sean nuestra prioridad.
+</p>
+</section>
+
+<section id="habitaciones">
+<h2>Habitaciones</h2>
+
+<div class="cards">
+
+<div class="card">
+<h3>Privacidad</h3>
+<p>Ambiente privado y discreto diseñado para el descanso.</p>
+</div>
+
+<div class="card">
+<h3>Comodidad</h3>
+<p>Habitaciones modernas con un ambiente agradable.</p>
+</div>
+
+<div class="card">
+<h3>Estacionamiento</h3>
+<p>Espacio privado para vehículos.</p>
+</div>
+
+<div class="card">
+<h3>Atención</h3>
+<p>Servicio amable y de calidad.</p>
+</div>
+
+</div>
+
+</section>
+
+<section id="ubicacion">
+<h2>Ubicación</h2>
+
+<p style="text-align:center">
+Kilómetro 385, carretera CA-13  
+a dos cuadras de la ruta hacia Flores Petén
+</p>
+
+<div class="map">
+Mapa interactivo próximamente
+</div>
+
+</section>
+
+<section id="galeria">
+<h2>Galería</h2>
+
+<div class="gallery">
+
+<div>Foto próximamente</div>
+<div>Foto próximamente</div>
+<div>Foto próximamente</div>
+<div>Foto próximamente</div>
+
+</div>
+
+</section>
+
+<footer>
+Gran Conquistador Auto Hotel • Próximamente
+</footer>
+
+</body>
+</html>
